@@ -16,33 +16,36 @@ st.markdown("""
     .page-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; }
     [data-testid="stMetric"] { background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; }
     .stButton > button { font-size: 0.875rem; border-radius: 6px; }
-    .delete-btn button { background-color: #dc2626 !important; color: white !important; }
 </style>
 """, unsafe_allow_html=True)
-
-
-# 삭제 확인 다이얼로그
-@st.dialog("시스템 삭제 확인")
-def confirm_delete_dialog(system_name, system_id):
-    st.warning(f"**'{system_name}'** 시스템을 삭제하시겠습니까?")
-    st.caption("삭제된 시스템은 복구할 수 없습니다.")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("취소", use_container_width=True):
-            st.rerun()
-    with col2:
-        if st.button("삭제", use_container_width=True, type="primary"):
-            delete_system(system_id)
-            st.cache_data.clear()
-            st.session_state['delete_success'] = system_name
-            st.rerun()
-
 
 # 삭제 성공 메시지 표시
 if 'delete_success' in st.session_state:
     st.success(f"'{st.session_state['delete_success']}' 시스템이 삭제되었습니다.")
     del st.session_state['delete_success']
+
+# 삭제 확인 다이얼로그 (세션 상태 기반)
+if 'confirm_delete' in st.session_state and st.session_state['confirm_delete']:
+    system_name = st.session_state['confirm_delete']['name']
+    system_id = st.session_state['confirm_delete']['id']
+
+    st.warning(f"**'{system_name}'** 시스템을 삭제하시겠습니까?")
+    st.caption("삭제된 시스템은 복구할 수 없습니다.")
+
+    col1, col2, col3 = st.columns([1, 1, 2])
+    with col1:
+        if st.button("삭제 확인", type="primary", use_container_width=True):
+            delete_system(system_id)
+            st.cache_data.clear()
+            st.session_state['delete_success'] = system_name
+            del st.session_state['confirm_delete']
+            st.rerun()
+    with col2:
+        if st.button("취소", use_container_width=True):
+            del st.session_state['confirm_delete']
+            st.rerun()
+
+    st.divider()
 
 st.markdown("<p class='page-title'>시스템 목록</p>", unsafe_allow_html=True)
 
@@ -158,12 +161,10 @@ if systems:
                     st.session_state['edit_system'] = selected
                     st.switch_page("pages/2_시스템_등록.py")
             with col2:
-                with st.container():
-                    st.markdown('<div class="delete-btn">', unsafe_allow_html=True)
-                    if st.button("삭제", use_container_width=True, key="table_delete"):
-                        sys_data = df[df['system_name'] == selected].iloc[0]
-                        confirm_delete_dialog(selected, sys_data['id'])
-                    st.markdown('</div>', unsafe_allow_html=True)
+                if st.button("삭제", use_container_width=True, key="table_delete"):
+                    sys_data = df[df['system_name'] == selected].iloc[0]
+                    st.session_state['confirm_delete'] = {'name': selected, 'id': sys_data['id']}
+                    st.rerun()
 
     elif view_mode == "카드":
         cols = st.columns(3)
@@ -183,7 +184,8 @@ if systems:
                             st.switch_page("pages/2_시스템_등록.py")
                     with btn_col2:
                         if st.button("삭제", key=f"del_card_{row['id']}", use_container_width=True):
-                            confirm_delete_dialog(row['system_name'], row['id'])
+                            st.session_state['confirm_delete'] = {'name': row['system_name'], 'id': row['id']}
+                            st.rerun()
 
     elif view_mode == "칸반":
         statuses = ["초기 개발", "개발 중", "테스트 필요", "운영 가능"]
@@ -209,7 +211,8 @@ if systems:
                                 st.switch_page("pages/2_시스템_등록.py")
                         with btn_col2:
                             if st.button("삭제", key=f"del_kb_{row['id']}", use_container_width=True):
-                                confirm_delete_dialog(row['system_name'], row['id'])
+                                st.session_state['confirm_delete'] = {'name': row['system_name'], 'id': row['id']}
+                                st.rerun()
 else:
     st.info("등록된 시스템이 없습니다.")
     if st.button("시스템 등록하기"):
