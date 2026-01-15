@@ -10,9 +10,20 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database.db import get_all_systems, get_dashboard_stats, get_all_services
 
-st.set_page_config(page_title="통계 리포트", page_icon="📊", layout="wide")
+st.set_page_config(page_title="통계 리포트", layout="wide")
 
-st.title("📊 통계 리포트")
+# CSS
+st.markdown("""
+<style>
+    html, body, [class*="css"] { font-size: 14px; }
+    .page-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; }
+    .section-title { font-size: 1rem; font-weight: 600; color: #334155; margin: 1rem 0 0.5rem 0; }
+    [data-testid="stMetric"] { background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .stButton > button { font-size: 0.875rem; border-radius: 6px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("<p class='page-title'>통계 리포트</p>", unsafe_allow_html=True)
 
 
 # 데이터 로드
@@ -33,7 +44,7 @@ if not systems:
 df = pd.DataFrame(systems)
 
 # 리포트 기간 선택
-st.sidebar.header("📅 리포트 설정")
+st.sidebar.markdown("### 리포트 설정")
 report_period = st.sidebar.selectbox(
     "기간",
     ["전체", "최근 1주일", "최근 1개월", "최근 3개월", "최근 6개월", "최근 1년"]
@@ -53,10 +64,10 @@ if report_period != "전체":
     df = df[df['created_at'] >= cutoff_date]
 
 # 탭 구성
-tab1, tab2, tab3, tab4 = st.tabs(["📈 개요", "📊 상세 분석", "🏢 부서별", "💰 비용 분석"])
+tab1, tab2, tab3, tab4 = st.tabs(["개요", "상세 분석", "부서별", "비용 분석"])
 
 with tab1:
-    st.subheader("전체 현황 요약")
+    st.markdown("<p class='section-title'>전체 현황 요약</p>", unsafe_allow_html=True)
 
     # KPI
     col1, col2, col3, col4 = st.columns(4)
@@ -121,7 +132,7 @@ with tab1:
         st.plotly_chart(fig, use_container_width=True)
 
 with tab2:
-    st.subheader("상세 분석")
+    st.markdown("<p class='section-title'>상세 분석</p>", unsafe_allow_html=True)
 
     # 플랫폼별 분석
     col1, col2 = st.columns(2)
@@ -195,7 +206,7 @@ with tab2:
     st.plotly_chart(fig, use_container_width=True)
 
 with tab3:
-    st.subheader("부서별 분석")
+    st.markdown("<p class='section-title'>부서별 분석</p>", unsafe_allow_html=True)
 
     # 부서 데이터 추출
     dept_data = []
@@ -276,7 +287,7 @@ with tab3:
         st.info("부서 데이터가 없습니다.")
 
 with tab4:
-    st.subheader("비용 분석")
+    st.markdown("<p class='section-title'>비용 분석</p>", unsafe_allow_html=True)
 
     if services:
         services_df = pd.DataFrame(services)
@@ -340,27 +351,27 @@ with tab4:
 
 # 리포트 다운로드
 st.divider()
-st.subheader("📥 리포트 다운로드")
+st.markdown("<p class='section-title'>리포트 다운로드</p>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
 with col1:
-    if st.button("📊 Excel 리포트 다운로드", use_container_width=True):
+    if st.button("Excel 리포트 다운로드", use_container_width=True):
         from utils.excel_handler import export_to_excel
         excel_data = export_to_excel(systems)
         st.download_button(
-            label="⬇️ 다운로드",
+            label="다운로드",
             data=excel_data,
             file_name=f"개발시스템_리포트_{datetime.now().strftime('%Y%m%d')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
 with col2:
-    if st.button("📄 CSV 다운로드", use_container_width=True):
+    if st.button("CSV 다운로드", use_container_width=True):
         from utils.excel_handler import export_to_csv
         csv_data = export_to_csv(systems)
         st.download_button(
-            label="⬇️ 다운로드",
+            label="다운로드",
             data=csv_data,
             file_name=f"개발시스템_리포트_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"

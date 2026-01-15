@@ -8,9 +8,20 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db import get_all_systems, get_system_by_name, create_system, update_system
 from utils.validators import validate_system_data
 
-st.set_page_config(page_title="시스템 등록", page_icon="➕", layout="wide")
+st.set_page_config(page_title="시스템 등록", layout="wide")
 
-st.title("➕ 시스템 등록 / 수정")
+# CSS
+st.markdown("""
+<style>
+    html, body, [class*="css"] { font-size: 14px; }
+    .page-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; }
+    .section-title { font-size: 1rem; font-weight: 600; color: #334155; margin: 1rem 0 0.5rem 0; }
+    [data-testid="stMetric"] { background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .stButton > button { font-size: 0.875rem; border-radius: 6px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("<p class='page-title'>시스템 등록 / 수정</p>", unsafe_allow_html=True)
 
 # 편집 모드 확인
 edit_mode = False
@@ -55,7 +66,7 @@ st.divider()
 
 # 폼
 with st.form("system_form"):
-    st.subheader("📝 기본 정보")
+    st.markdown("<p class='section-title'>기본 정보</p>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
@@ -135,7 +146,7 @@ with st.form("system_form"):
         placeholder="시스템의 목적과 주요 기능을 설명해주세요"
     )
 
-    st.subheader("🛠️ 기술 스택")
+    st.markdown("<p class='section-title'>기술 스택</p>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
@@ -196,7 +207,7 @@ with st.form("system_form"):
     col1, col2, col3 = st.columns([1, 1, 2])
     with col1:
         submitted = st.form_submit_button(
-            "💾 저장",
+            "저장",
             use_container_width=True,
             type="primary"
         )
@@ -241,17 +252,17 @@ if submitted:
                 st.error(f"'{system_name}' 시스템명이 이미 존재합니다.")
             else:
                 create_system(data)
-                st.success(f"✅ '{system_name}' 시스템이 등록되었습니다!")
+                st.success(f"'{system_name}' 시스템이 등록되었습니다!")
                 # 세션 초기화
                 if 'edit_system' in st.session_state:
                     del st.session_state['edit_system']
                 st.cache_data.clear()
         else:
             update_system(system_data['id'], data, changed_by=owner)
-            st.success(f"✅ '{system_name}' 시스템이 수정되었습니다!")
+            st.success(f"'{system_name}' 시스템이 수정되었습니다!")
             st.cache_data.clear()
 
 if cancelled:
     if 'edit_system' in st.session_state:
         del st.session_state['edit_system']
-    st.switch_page("pages/1_📋_시스템_목록.py")
+    st.switch_page("pages/1_시스템_목록.py")

@@ -10,9 +10,20 @@ from database.db import get_all_services, create_service, update_service, delete
 from utils.charts import create_cost_pie
 from utils.validators import validate_service_data
 
-st.set_page_config(page_title="비용 관리", page_icon="💰", layout="wide")
+st.set_page_config(page_title="비용 관리", layout="wide")
 
-st.title("💰 서비스 비용 관리")
+# CSS
+st.markdown("""
+<style>
+    html, body, [class*="css"] { font-size: 14px; }
+    .page-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; }
+    .section-title { font-size: 1rem; font-weight: 600; color: #334155; margin: 1rem 0 0.5rem 0; }
+    [data-testid="stMetric"] { background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .stButton > button { font-size: 0.875rem; border-radius: 6px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("<p class='page-title'>서비스 비용 관리</p>", unsafe_allow_html=True)
 
 
 # 데이터 로드
@@ -24,7 +35,7 @@ def load_services():
 services = load_services()
 
 # 서비스 추가
-with st.expander("➕ 새 서비스 추가", expanded=False):
+with st.expander("새 서비스 추가", expanded=False):
     with st.form("service_form"):
         col1, col2 = st.columns(2)
 
@@ -40,7 +51,7 @@ with st.expander("➕ 새 서비스 추가", expanded=False):
 
         notes = st.text_area("비고", placeholder="추가 메모...")
 
-        if st.form_submit_button("➕ 추가", type="primary", use_container_width=True):
+        if st.form_submit_button("추가", type="primary", use_container_width=True):
             data = {
                 'service_name': service_name,
                 'plan_type': plan_type,
@@ -57,14 +68,14 @@ with st.expander("➕ 새 서비스 추가", expanded=False):
                     st.error(error)
             else:
                 create_service(data)
-                st.success(f"✅ {service_name} 추가됨")
+                st.success(f"{service_name} 추가됨")
                 st.cache_data.clear()
                 st.rerun()
 
 st.divider()
 
 # 현재 서비스 목록
-st.subheader("📋 현재 사용 중인 서비스")
+st.markdown("<p class='section-title'>현재 사용 중인 서비스</p>", unsafe_allow_html=True)
 
 if services:
     # 총 비용 계산
@@ -104,7 +115,7 @@ if services:
 
     # 서비스 수정
     st.divider()
-    st.subheader("✏️ 서비스 수정")
+    st.markdown("<p class='section-title'>서비스 수정</p>", unsafe_allow_html=True)
 
     service_to_edit = st.selectbox(
         "수정할 서비스 선택",
@@ -156,7 +167,7 @@ if services:
                 value=edit_data['notes'] or ''
             )
 
-            if st.form_submit_button("💾 수정 저장", type="primary", use_container_width=True):
+            if st.form_submit_button("수정 저장", type="primary", use_container_width=True):
                 updated_data = {
                     'service_name': edit_service_name,
                     'plan_type': edit_plan_type,
@@ -173,13 +184,13 @@ if services:
                         st.error(error)
                 else:
                     update_service(edit_data['id'], updated_data)
-                    st.success(f"✅ {edit_service_name} 수정됨")
+                    st.success(f"{edit_service_name} 수정됨")
                     st.cache_data.clear()
                     st.rerun()
 
     # 서비스 삭제
     st.divider()
-    st.subheader("🗑️ 서비스 삭제")
+    st.markdown("<p class='section-title'>서비스 삭제</p>", unsafe_allow_html=True)
 
     col1, col2 = st.columns([3, 1])
     with col1:
@@ -191,11 +202,11 @@ if services:
     with col2:
         st.write("")
         st.write("")
-        if st.button("🗑️ 삭제", use_container_width=True, type="primary"):
+        if st.button("삭제", use_container_width=True, type="primary"):
             if service_to_delete != "선택하세요":
                 service_data = services_df[services_df['service_name'] == service_to_delete].iloc[0]
                 delete_service(service_data['id'])
-                st.success(f"✅ {service_to_delete} 삭제됨")
+                st.success(f"{service_to_delete} 삭제됨")
                 st.cache_data.clear()
                 st.rerun()
 
@@ -205,12 +216,12 @@ if services:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📊 서비스별 비용 비중")
+        st.markdown("<p class='section-title'>서비스별 비용 비중</p>", unsafe_allow_html=True)
         fig = create_cost_pie(services)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        st.subheader("📈 비용 순위")
+        st.markdown("<p class='section-title'>비용 순위</p>", unsafe_allow_html=True)
         sorted_df = services_df.sort_values('monthly_cost', ascending=True)
 
         fig = px.bar(
@@ -234,7 +245,7 @@ else:
 
 # 사이드바
 with st.sidebar:
-    st.header("💡 비용 관리 팁")
+    st.markdown("### 비용 관리 팁")
 
     with st.expander("무료 vs 유료 서비스"):
         st.markdown("""

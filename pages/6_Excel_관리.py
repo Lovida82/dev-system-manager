@@ -9,15 +9,26 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db import get_all_systems
 from utils.excel_handler import import_from_excel, export_to_excel, export_to_csv, create_empty_template, get_db_columns, get_all_columns
 
-st.set_page_config(page_title="Excel 관리", page_icon="📥", layout="wide")
+st.set_page_config(page_title="Excel 관리", layout="wide")
 
-st.title("📥 Excel Import / Export")
+# CSS
+st.markdown("""
+<style>
+    html, body, [class*="css"] { font-size: 14px; }
+    .page-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; }
+    .section-title { font-size: 1rem; font-weight: 600; color: #334155; margin: 1rem 0 0.5rem 0; }
+    [data-testid="stMetric"] { background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .stButton > button { font-size: 0.875rem; border-radius: 6px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("<p class='page-title'>Excel Import / Export</p>", unsafe_allow_html=True)
 
 # 탭 구성
-tab1, tab2, tab3 = st.tabs(["📤 가져오기", "📥 내보내기", "📄 템플릿"])
+tab1, tab2, tab3 = st.tabs(["가져오기", "내보내기", "템플릿"])
 
 with tab1:
-    st.header("📤 Excel 파일 가져오기")
+    st.markdown("<p class='section-title'>Excel 파일 가져오기</p>", unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
         "엑셀 파일 선택",
@@ -31,7 +42,7 @@ with tab1:
             xl = pd.ExcelFile(uploaded_file)
             sheet_names = xl.sheet_names
 
-            st.success(f"✅ 파일 로드 성공: {uploaded_file.name}")
+            st.success(f"파일 로드 성공: {uploaded_file.name}")
 
             # 시트 선택
             selected_sheet = st.selectbox("시트 선택", options=sheet_names)
@@ -45,13 +56,13 @@ with tab1:
             st.write(f"**총 {len(df)}행 x {len(df.columns)}열**")
 
             # 미리보기
-            st.subheader("📋 미리보기 (상위 10행)")
+            st.markdown("<p class='section-title'>미리보기 (상위 10행)</p>", unsafe_allow_html=True)
             st.dataframe(df.head(10), use_container_width=True)
 
             st.divider()
 
             # 컬럼 매핑
-            st.subheader("🔗 컬럼 매핑")
+            st.markdown("<p class='section-title'>컬럼 매핑</p>", unsafe_allow_html=True)
             st.info("Excel 컬럼을 DB 컬럼에 매핑하세요. '건너뛰기'를 선택하면 해당 필드는 비워집니다.")
 
             excel_columns = ["건너뛰기"] + df.columns.tolist()
@@ -110,7 +121,7 @@ with tab1:
             # Import 실행
             st.divider()
 
-            if st.button("🚀 가져오기 실행", type="primary", use_container_width=True):
+            if st.button("가져오기 실행", type="primary", use_container_width=True):
                 with st.spinner("데이터 가져오는 중..."):
                     result = import_from_excel(
                         df=df,
@@ -119,24 +130,24 @@ with tab1:
                     )
 
                     st.success(f"""
-                    ✅ Import 완료!
+                    Import 완료!
                     - 성공: {result['success']}건
                     - 실패: {result['failed']}건
                     - 건너뜀: {result['skipped']}건
                     """)
 
                     if result['errors']:
-                        with st.expander("❌ 오류 상세", expanded=True):
+                        with st.expander("오류 상세", expanded=True):
                             for error in result['errors']:
                                 st.error(error)
 
                     st.cache_data.clear()
 
         except Exception as e:
-            st.error(f"❌ 파일 처리 중 오류: {str(e)}")
+            st.error(f"파일 처리 중 오류: {str(e)}")
 
 with tab2:
-    st.header("📥 Excel 파일 내보내기")
+    st.markdown("<p class='section-title'>Excel 파일 내보내기</p>", unsafe_allow_html=True)
 
     systems = get_all_systems()
 
@@ -153,7 +164,7 @@ with tab2:
             include_deleted = st.checkbox("삭제된 시스템 포함", value=False)
 
         # 컬럼 선택
-        st.subheader("📋 내보낼 컬럼 선택")
+        st.markdown("<p class='section-title'>내보낼 컬럼 선택</p>", unsafe_allow_html=True)
 
         all_columns = get_all_columns()
 
@@ -173,7 +184,7 @@ with tab2:
         st.divider()
 
         # Export 실행
-        if st.button("📥 파일 생성", type="primary", use_container_width=True):
+        if st.button("파일 생성", type="primary", use_container_width=True):
             with st.spinner("파일 생성 중..."):
                 # 데이터 로드
                 export_data = get_all_systems(include_deleted=include_deleted)
@@ -188,7 +199,7 @@ with tab2:
                     mime = "text/csv"
 
                 st.download_button(
-                    label="⬇️ 다운로드",
+                    label="다운로드",
                     data=output,
                     file_name=filename,
                     mime=mime,
@@ -197,7 +208,7 @@ with tab2:
 
         # 미리보기
         st.divider()
-        st.subheader("📋 데이터 미리보기")
+        st.markdown("<p class='section-title'>데이터 미리보기</p>", unsafe_allow_html=True)
 
         preview_df = pd.DataFrame(systems)
         if selected_columns:
@@ -211,7 +222,7 @@ with tab2:
         st.info("내보낼 데이터가 없습니다. 시스템을 먼저 등록해주세요.")
 
 with tab3:
-    st.header("📄 빈 템플릿 다운로드")
+    st.markdown("<p class='section-title'>빈 템플릿 다운로드</p>", unsafe_allow_html=True)
 
     st.write("새로운 시스템을 엑셀로 작성 후 가져오기 할 수 있습니다.")
 
@@ -226,7 +237,7 @@ with tab3:
     st.divider()
 
     # 템플릿 컬럼 설명
-    st.subheader("📋 컬럼 설명")
+    st.markdown("<p class='section-title'>컬럼 설명</p>", unsafe_allow_html=True)
 
     column_descriptions = {
         'system_name': '시스템명 (필수) - 고유한 이름',
@@ -251,10 +262,10 @@ with tab3:
 
     st.divider()
 
-    if st.button("📄 템플릿 다운로드", type="primary", use_container_width=True):
+    if st.button("템플릿 다운로드", type="primary", use_container_width=True):
         template = create_empty_template()
         st.download_button(
-            label="⬇️ 다운로드",
+            label="다운로드",
             data=template,
             file_name="개발시스템_입력양식.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -263,7 +274,7 @@ with tab3:
 
 # 사이드바
 with st.sidebar:
-    st.header("💡 Excel 관리 팁")
+    st.markdown("### Excel 관리 팁")
 
     with st.expander("가져오기 주의사항"):
         st.markdown("""

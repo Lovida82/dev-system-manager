@@ -7,15 +7,26 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database.db import get_all_systems, get_system_history
 
-st.set_page_config(page_title="설정", page_icon="⚙️", layout="wide")
+st.set_page_config(page_title="설정", layout="wide")
 
-st.title("⚙️ 설정")
+# CSS
+st.markdown("""
+<style>
+    html, body, [class*="css"] { font-size: 14px; }
+    .page-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; }
+    .section-title { font-size: 1rem; font-weight: 600; color: #334155; margin: 1rem 0 0.5rem 0; }
+    [data-testid="stMetric"] { background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .stButton > button { font-size: 0.875rem; border-radius: 6px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("<p class='page-title'>설정</p>", unsafe_allow_html=True)
 
 # 탭 구성
-tab1, tab2, tab3 = st.tabs(["👤 사용자 설정", "📜 변경 이력", "🔧 시스템 설정"])
+tab1, tab2, tab3 = st.tabs(["사용자 설정", "변경 이력", "시스템 설정"])
 
 with tab1:
-    st.subheader("사용자 설정")
+    st.markdown("<p class='section-title'>사용자 설정</p>", unsafe_allow_html=True)
 
     # 사용자 이름 설정
     if 'user_name' not in st.session_state:
@@ -23,14 +34,14 @@ with tab1:
 
     user_name = st.text_input("사용자 이름", value=st.session_state.user_name)
 
-    if st.button("💾 저장", key="save_user"):
+    if st.button("저장", key="save_user"):
         st.session_state.user_name = user_name
-        st.success(f"✅ 사용자 이름이 '{user_name}'(으)로 저장되었습니다.")
+        st.success(f"사용자 이름이 '{user_name}'(으)로 저장되었습니다.")
 
     st.divider()
 
     # 기본 설정
-    st.subheader("기본 설정")
+    st.markdown("<p class='section-title'>기본 설정</p>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
@@ -55,7 +66,7 @@ with tab1:
         auto_refresh = st.checkbox("자동 새로고침 (60초)", value=False)
 
 with tab2:
-    st.subheader("변경 이력 조회")
+    st.markdown("<p class='section-title'>변경 이력 조회</p>", unsafe_allow_html=True)
 
     systems = get_all_systems()
 
@@ -73,7 +84,7 @@ with tab2:
 
                 for h in history:
                     with st.expander(
-                        f"🕐 {h['changed_at'].strftime('%Y-%m-%d %H:%M') if h['changed_at'] else 'N/A'} - {h['field_name']}",
+                        f"{h['changed_at'].strftime('%Y-%m-%d %H:%M') if h['changed_at'] else 'N/A'} - {h['field_name']}",
                         expanded=False
                     ):
                         col1, col2 = st.columns(2)
@@ -92,7 +103,7 @@ with tab2:
         st.info("등록된 시스템이 없습니다.")
 
 with tab3:
-    st.subheader("시스템 설정")
+    st.markdown("<p class='section-title'>시스템 설정</p>", unsafe_allow_html=True)
 
     # 데이터베이스 정보
     st.markdown("**데이터베이스 정보**")
@@ -119,9 +130,9 @@ with tab3:
     # 캐시 관리
     st.markdown("**캐시 관리**")
 
-    if st.button("🗑️ 캐시 초기화", use_container_width=False):
+    if st.button("캐시 초기화", use_container_width=False):
         st.cache_data.clear()
-        st.success("✅ 캐시가 초기화되었습니다.")
+        st.success("캐시가 초기화되었습니다.")
         st.rerun()
 
     st.divider()
@@ -129,13 +140,13 @@ with tab3:
     # 데이터 백업
     st.markdown("**데이터 백업**")
 
-    if st.button("📥 DB 백업 다운로드", use_container_width=False):
+    if st.button("DB 백업 다운로드", use_container_width=False):
         if os.path.exists(db_path):
             with open(db_path, 'rb') as f:
                 db_data = f.read()
 
             st.download_button(
-                label="⬇️ 다운로드",
+                label="다운로드",
                 data=db_data,
                 file_name=f"dev_systems_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db",
                 mime="application/octet-stream"
@@ -154,7 +165,7 @@ with tab3:
 
 # 사이드바
 with st.sidebar:
-    st.header("📖 도움말")
+    st.markdown("### 도움말")
 
     with st.expander("사용자 설정"):
         st.markdown("""
