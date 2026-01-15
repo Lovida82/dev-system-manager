@@ -19,6 +19,23 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# 캐시된 시스템 로드 함수
+@st.cache_data(ttl=30)
+def load_systems():
+    return get_all_systems()
+
+
+# 삭제 처리
+if 'do_delete' in st.session_state and st.session_state['do_delete']:
+    system_id = st.session_state['do_delete']['id']
+    system_name = st.session_state['do_delete']['name']
+    delete_system(system_id)
+    load_systems.clear()  # 캐시 클리어
+    st.session_state['delete_success'] = system_name
+    del st.session_state['do_delete']
+    if 'confirm_delete' in st.session_state:
+        del st.session_state['confirm_delete']
+
 # 삭제 성공 메시지 표시
 if 'delete_success' in st.session_state:
     st.success(f"'{st.session_state['delete_success']}' 시스템이 삭제되었습니다.")
@@ -35,10 +52,7 @@ if 'confirm_delete' in st.session_state and st.session_state['confirm_delete']:
     col1, col2, col3 = st.columns([1, 1, 2])
     with col1:
         if st.button("삭제 확인", type="primary", use_container_width=True):
-            delete_system(system_id)
-            st.cache_data.clear()
-            st.session_state['delete_success'] = system_name
-            del st.session_state['confirm_delete']
+            st.session_state['do_delete'] = {'id': system_id, 'name': system_name}
             st.rerun()
     with col2:
         if st.button("취소", use_container_width=True):
@@ -49,12 +63,7 @@ if 'confirm_delete' in st.session_state and st.session_state['confirm_delete']:
 
 st.markdown("<p class='page-title'>시스템 목록</p>", unsafe_allow_html=True)
 
-
-@st.cache_data(ttl=30)
-def load_systems():
-    return get_all_systems()
-
-
+# 시스템 데이터 로드
 systems = load_systems()
 
 # 필터 사이드바
